@@ -95,26 +95,24 @@
     theme.addEventListener("play", () => setUI(true));
     theme.addEventListener("pause", () => setUI(false));
 
-    // Toggle shows ON from the start
-    setUI(true);
+    // Sound starts after the visitor enters through the gate
+    setUI(false);
 
-    // Play as a callback once the page/audio is ready.
-    // Note: the load event is not a user gesture, so browsers that block
-    // autoplay still need the first-interaction fallback below.
-    const playWhenReady = () => start();
-    theme.addEventListener("canplaythrough", playWhenReady, { once: true });
-    if (document.readyState === "complete") playWhenReady();
-    else window.addEventListener("load", playWhenReady, { once: true });
-    start(); // opportunistic immediate attempt
-
-    // If the browser blocks autoplay, start silently on the first interaction
-    const events = ["pointerdown", "keydown", "touchstart", "scroll"];
-    const onFirst = (e) => {
-      if (soundBtn.contains(e.target)) return;   // the button handles itself
-      if (theme.paused) start();
-      events.forEach((ev) => window.removeEventListener(ev, onFirst));
-    };
-    events.forEach((ev) => window.addEventListener(ev, onFirst, { passive: true }));
+    // Enter gate: the click on the gate button starts the theme (a real user
+    // gesture, so it always works around browser autoplay restrictions)
+    const gate = document.getElementById("enterGate");
+    if (gate) {
+      document.body.style.overflow = "hidden";   // lock scroll behind the gate
+      const enterBtn = document.getElementById("enterBtn");
+      const dismiss = () => {
+        document.body.style.overflow = "";
+        gate.classList.add("is-leaving");
+        setTimeout(() => gate.remove(), 600);
+      };
+      if (enterBtn) enterBtn.addEventListener("click", () => { start(); dismiss(); });
+    } else {
+      start();
+    }
 
     // Manual toggle (top-right)
     soundBtn.addEventListener("click", () => {

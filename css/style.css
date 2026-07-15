@@ -672,6 +672,38 @@ a.transmit__link:hover {
 }
 .reveal.is-in { opacity: 1; transform: translateY(0); }
 
+/* ---------- Enter gate ---------- */
+.enter-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 2rem;
+  background: radial-gradient(ellipse at center, #0a0d18 0%, #05060a 72%);
+  transition: opacity 0.6s var(--ease);
+}
+.enter-gate.is-leaving { opacity: 0; pointer-events: none; }
+.enter-gate__inner { max-width: 44ch; opacity: 0; animation: rise 0.9s var(--ease) 0.15s forwards; }
+.enter-gate__eyebrow {
+  color: var(--blue);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 1.1rem;
+}
+.enter-gate__title {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 10vw, 5.5rem);
+  text-transform: uppercase;
+  color: var(--gold);
+  line-height: 0.9;
+  text-shadow: 0 0 44px rgba(255, 232, 31, 0.35);
+}
+.enter-gate__btn { margin-top: 2.2rem; }
+
 /* ---------- Sound toggle ---------- */
 .sound-toggle {
   position: fixed;
