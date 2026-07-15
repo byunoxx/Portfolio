@@ -19,6 +19,15 @@
   <canvas id="starfield" aria-hidden="true"></canvas>
   <div class="hyperspace" id="hyperspace" aria-hidden="true"></div>
 
+  <!-- Star Wars theme audio -->
+  <audio id="theme" src="assets/audio/theme.mp3" loop preload="auto"></audio>
+  <button class="sound-toggle" id="soundToggle" aria-label="Toggle music" aria-pressed="false">
+    <span class="sound-toggle__bars" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+    </span>
+    <span class="sound-toggle__label">Theme</span>
+  </button>
+
   <!-- ===== NAV ===== -->
   <header class="nav" id="nav">
     <a href="#top" class="nav__brand">

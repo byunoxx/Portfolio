@@ -672,6 +672,61 @@ a.transmit__link:hover {
 }
 .reveal.is-in { opacity: 1; transform: translateY(0); }
 
+/* ---------- Sound toggle ---------- */
+.sound-toggle {
+  position: fixed;
+  right: clamp(1rem, 4vw, 2rem);
+  bottom: clamp(1rem, 4vw, 2rem);
+  z-index: 55;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  background: rgba(5, 6, 10, 0.72);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--gold);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.sound-toggle:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+  box-shadow: 0 8px 26px rgba(255, 232, 31, 0.18);
+}
+.sound-toggle:active { transform: translateY(0) scale(0.97); }
+.sound-toggle__bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 15px;
+}
+.sound-toggle__bars span {
+  width: 3px;
+  height: 40%;
+  background: var(--gold);
+  border-radius: 2px;
+}
+/* animate the bars only while playing */
+.sound-toggle.is-playing .sound-toggle__bars span {
+  animation: eq 0.9s ease-in-out infinite;
+}
+.sound-toggle.is-playing .sound-toggle__bars span:nth-child(1) { animation-delay: -0.6s; }
+.sound-toggle.is-playing .sound-toggle__bars span:nth-child(2) { animation-delay: -0.2s; }
+.sound-toggle.is-playing .sound-toggle__bars span:nth-child(3) { animation-delay: -0.45s; }
+.sound-toggle.is-playing .sound-toggle__bars span:nth-child(4) { animation-delay: -0.1s; }
+@keyframes eq {
+  0%, 100% { height: 30%; }
+  50%      { height: 100%; }
+}
+.sound-toggle:not(.is-playing) .sound-toggle__bars span { height: 30%; opacity: 0.6; }
+
 /* ---------- Hyperspace jump flash ---------- */
 .hyperspace {
   position: fixed;

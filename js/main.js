@@ -77,6 +77,44 @@
     keepPlaying();
   }
 
+  /* ---------- Star Wars theme music ---------- */
+  const theme = document.getElementById("theme");
+  const soundBtn = document.getElementById("soundToggle");
+  if (theme && soundBtn) {
+    theme.volume = 0.55;
+
+    const setUI = (playing) => {
+      soundBtn.classList.toggle("is-playing", playing);
+      soundBtn.setAttribute("aria-pressed", String(playing));
+    };
+
+    const start = () => {
+      const p = theme.play();
+      if (p && typeof p.catch === "function") p.catch(() => {});
+    };
+
+    // Try to play on entry (most browsers block audio until interaction)
+    start();
+
+    // Fallback: kick off on the first real user interaction anywhere
+    const events = ["pointerdown", "keydown", "touchstart", "scroll"];
+    const onFirst = (e) => {
+      if (soundBtn.contains(e.target)) return;   // the button handles itself
+      if (theme.paused) start();
+      events.forEach((ev) => window.removeEventListener(ev, onFirst));
+    };
+    events.forEach((ev) => window.addEventListener(ev, onFirst, { passive: true }));
+
+    // Manual toggle
+    soundBtn.addEventListener("click", () => {
+      if (theme.paused) start();
+      else theme.pause();
+    });
+
+    theme.addEventListener("play", () => setUI(true));
+    theme.addEventListener("pause", () => setUI(false));
+  }
+
   /* ---------- Nav: scrolled state + mobile toggle ---------- */
   const nav = document.getElementById("nav");
   const toggle = document.getElementById("navToggle");
