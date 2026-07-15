@@ -8,12 +8,10 @@
 
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- Animated starfield ---------- */
-  const canvas = document.getElementById("starfield");
-  if (canvas) {
+  /* ---------- Animated starfield (reusable) ---------- */
+  const createStarfield = (canvas) => {
     const ctx = canvas.getContext("2d");
-    let stars = [];
-    let w = 0, h = 0, raf = null;
+    let stars = [], w = 0, h = 0, raf = null, resizeTimer = null;
 
     const build = () => {
       w = canvas.width = window.innerWidth * devicePixelRatio;
@@ -23,7 +21,6 @@
         x: Math.random() * w,
         y: Math.random() * h,
         r: Math.random() * 1.4 * devicePixelRatio + 0.2,
-        // faint drift + twinkle
         tw: Math.random() * Math.PI * 2,
         sp: Math.random() * 0.02 + 0.004,
         vy: (Math.random() * 0.12 + 0.02) * devicePixelRatio,
@@ -40,28 +37,84 @@
         const a = 0.4 + Math.abs(Math.sin(s.tw)) * 0.6;
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = s.gold
-          ? `rgba(255, 232, 31, ${a})`
-          : `rgba(255, 255, 255, ${a})`;
+        ctx.fillStyle = s.gold ? `rgba(255, 232, 31, ${a})` : `rgba(255, 255, 255, ${a})`;
         ctx.fill();
       }
       raf = requestAnimationFrame(draw);
     };
 
-    build();
-    if (prefersReduced) {
-      draw();                 // one static frame
-      cancelAnimationFrame(raf);
-    } else {
-      draw();
-    }
-
-    let resizeTimer;
-    window.addEventListener("resize", () => {
+    const onResize = () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(build, 200);
-    });
-  }
+      resizeTimer = setTimeout(() => {
+        build();
+        if (prefersReduced) { draw(); cancelAnimationFrame(raf); }
+      }, 200);
+    };
+
+    build();
+    draw();
+    if (prefersReduced) cancelAnimationFrame(raf);   // one static frame
+    window.addEventListener("resize", onResize);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
+  };
+
+  const mainField = document.getElementById("starfield");
+  if (mainField) createStarfield(mainField);
+  const gateField = document.getElementById("gateStars");
+  let stopGateStars = gateField ? createStarfield(gateField) : null;
+
+  /* ---------- Hyperspace entry effect ---------- */
+  const runHyperspace = (duration, onDone) => {
+    const canvas = document.getElementById("hyperCanvas");
+    if (!canvas) { if (onDone) onDone(); return; }
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.width = window.innerWidth * dpr;
+    const h = canvas.height = window.innerHeight * dpr;
+    const cx = w / 2, cy = h / 2;
+    const maxR = Math.hypot(w, h) / 2;
+    const N = Math.min(520, Math.floor((window.innerWidth * window.innerHeight) / 2600));
+
+    const spawn = () => {
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * maxR * 0.22;
+      return { angle, r, pr: r, speed: (Math.random() * 2 + 1) * dpr };
+    };
+    const stars = Array.from({ length: N }, spawn);
+
+    canvas.classList.add("is-active");
+    const startT = performance.now();
+    let raf;
+    const frame = (now) => {
+      const t = now - startT;
+      const prog = Math.min(t / duration, 1);
+      const accel = 1 + prog * prog * 15;                 // ramp into lightspeed
+      ctx.fillStyle = "rgba(5, 6, 10, 0.32)";             // motion-blur trails
+      ctx.fillRect(0, 0, w, h);
+      for (const s of stars) {
+        s.pr = s.r;
+        s.r += s.speed * accel;
+        const cos = Math.cos(s.angle), sin = Math.sin(s.angle);
+        const x1 = cx + cos * s.pr, y1 = cy + sin * s.pr;
+        const x2 = cx + cos * s.r, y2 = cy + sin * s.r;
+        const bright = Math.min(0.35 + (s.r / maxR) * 0.65, 1);
+        ctx.strokeStyle = `rgba(${180 + Math.floor(bright * 75)}, 225, 255, ${bright})`;
+        ctx.lineWidth = Math.max(1, (s.r / maxR) * 2.6 * dpr);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        if (s.r > maxR) Object.assign(s, spawn());
+      }
+      if (t < duration) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        canvas.classList.remove("is-active");             // fade out via CSS
+        setTimeout(() => { ctx.clearRect(0, 0, w, h); if (onDone) onDone(); }, 400);
+      }
+    };
+    raf = requestAnimationFrame(frame);
+  };
 
   /* ---------- Background video: always playing, cannot be stopped ---------- */
   const bgVideo = document.querySelector(".holofeed__bg");
@@ -109,7 +162,12 @@
         gate.classList.add("is-leaving");
         setTimeout(() => gate.remove(), 600);
       };
-      if (enterBtn) enterBtn.addEventListener("click", () => { start(); dismiss(); });
+      if (enterBtn) enterBtn.addEventListener("click", () => {
+        start();                                  // music
+        if (stopGateStars) stopGateStars();       // stop the gate's starfield
+        if (prefersReduced) { dismiss(); return; }
+        runHyperspace(3000, dismiss);             // 3s jump, then reveal the site
+      }, { once: true });
     } else {
       start();
     }
