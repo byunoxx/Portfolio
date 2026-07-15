@@ -77,10 +77,9 @@
     keepPlaying();
   }
 
-  /* ---------- Star Wars theme music + enter gate ---------- */
+  /* ---------- Star Wars theme music (on by default) ---------- */
   const theme = document.getElementById("theme");
   const soundBtn = document.getElementById("soundToggle");
-  const gate = document.getElementById("enterGate");
   if (theme && soundBtn) {
     theme.volume = 0.55;
 
@@ -96,37 +95,32 @@
     theme.addEventListener("play", () => setUI(true));
     theme.addEventListener("pause", () => setUI(false));
 
-    // Manual toggle (always available, top-right)
+    // Toggle shows ON from the start
+    setUI(true);
+
+    // Play as a callback once the page/audio is ready.
+    // Note: the load event is not a user gesture, so browsers that block
+    // autoplay still need the first-interaction fallback below.
+    const playWhenReady = () => start();
+    theme.addEventListener("canplaythrough", playWhenReady, { once: true });
+    if (document.readyState === "complete") playWhenReady();
+    else window.addEventListener("load", playWhenReady, { once: true });
+    start(); // opportunistic immediate attempt
+
+    // If the browser blocks autoplay, start silently on the first interaction
+    const events = ["pointerdown", "keydown", "touchstart", "scroll"];
+    const onFirst = (e) => {
+      if (soundBtn.contains(e.target)) return;   // the button handles itself
+      if (theme.paused) start();
+      events.forEach((ev) => window.removeEventListener(ev, onFirst));
+    };
+    events.forEach((ev) => window.addEventListener(ev, onFirst, { passive: true }));
+
+    // Manual toggle (top-right)
     soundBtn.addEventListener("click", () => {
       if (theme.paused) start();
       else theme.pause();
     });
-
-    // Enter gate: guarantees the theme starts the moment the visitor enters
-    const dismissGate = () => {
-      document.body.style.overflow = "";
-      if (!gate) return;
-      gate.classList.add("is-leaving");
-      setTimeout(() => gate.remove(), 600);
-    };
-
-    if (gate) {
-      document.body.style.overflow = "hidden";   // lock scroll behind the gate
-      const enterBtn = document.getElementById("enterBtn");
-      const enterSilent = document.getElementById("enterSilent");
-      if (enterBtn) enterBtn.addEventListener("click", () => { start(); dismissGate(); });
-      if (enterSilent) enterSilent.addEventListener("click", dismissGate);
-
-      // If the browser already allows autoplay, play now and drop the gate
-      const p = theme.play();
-      if (p && typeof p.then === "function") {
-        p.then(() => dismissGate()).catch(() => {
-          /* blocked: leave the gate up so one click starts the sound */
-        });
-      }
-    } else {
-      start();
-    }
   }
 
   /* ---------- Nav: scrolled state + mobile toggle ---------- */
