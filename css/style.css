@@ -373,19 +373,26 @@ a { color: inherit; }
 .holofeed {
   position: relative;
   width: 100%;
-  min-height: 82vh;
-  display: flex;
-  align-items: flex-end;
-  overflow: hidden;
+  background: #000;
   border-top: 1px solid var(--line-soft);
   border-bottom: 1px solid var(--line-soft);
+  overflow: hidden;
+}
+.holofeed__stage {
+  position: relative;
+  width: 100%;
+  /* stage matches the video ratio so the whole frame (incl. Grogu) is
+     always visible on every screen size, never cropped */
+  aspect-ratio: 1600 / 750;
+  overflow: hidden;
+  background: #000;
 }
 .holofeed__bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;      /* stage == video ratio, so cover shows the full frame */
   pointer-events: none;   /* always-on background: cannot be paused or interacted with */
   z-index: 0;
 }
@@ -394,12 +401,8 @@ a { color: inherit; }
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(
-    to top,
-    rgba(5, 6, 10, 0.94) 0%,
-    rgba(5, 6, 10, 0.35) 42%,
-    rgba(5, 6, 10, 0.55) 100%
-  );
+  /* light on mobile so Grogu stays clearly visible; text sits below the video */
+  background: linear-gradient(to top, rgba(5, 6, 10, 0.4), transparent 45%);
 }
 .holofeed__content {
   position: relative;
@@ -407,13 +410,30 @@ a { color: inherit; }
   width: 100%;
   max-width: var(--max);
   margin-inline: auto;
-  padding: clamp(3rem, 9vw, 6rem) clamp(1.25rem, 5vw, 3rem);
+  padding: clamp(1.75rem, 5vw, 3rem) clamp(1.25rem, 5vw, 3rem);
 }
 .holofeed__lead {
   color: var(--text);
   font-size: 1.1rem;
   max-width: 42ch;
   margin-top: 0.7rem;
+}
+@media (min-width: 768px) {
+  /* on wider screens there is room to overlay the caption on the video */
+  .holofeed__content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  .holofeed__scrim {
+    background: linear-gradient(
+      to top,
+      rgba(5, 6, 10, 0.9) 0%,
+      rgba(5, 6, 10, 0.05) 45%,
+      rgba(5, 6, 10, 0.25) 100%
+    );
+  }
 }
 
 /* ---------- Journey / timeline ---------- */
