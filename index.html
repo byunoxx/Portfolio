@@ -115,10 +115,7 @@
     <!-- ===== TRANSMISSION / BACKGROUND VIDEO ===== -->
     <section class="holofeed" id="transmission" aria-label="Transmission">
       <div class="holofeed__stage">
-        <video class="holofeed__bg" src="assets/video/showreel.mp4"
-               autoplay muted loop playsinline
-               disablepictureinpicture
-               controlslist="nodownload nofullscreen noremoteplayback"></video>
+        <div class="holofeed__bg" id="holofeedLottie" aria-hidden="true"></div>
         <div class="holofeed__scrim" aria-hidden="true"></div>
       </div>
       <div class="holofeed__content reveal">
@@ -343,6 +340,7 @@
     <span>&copy; 2026</span>
   </footer>
 
-  <script src="js/main.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <script defer src="js/main.js"></script>
 </body>
 </html>

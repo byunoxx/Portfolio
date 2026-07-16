@@ -116,18 +116,17 @@
     raf = requestAnimationFrame(frame);
   };
 
-  /* ---------- Background video: always playing, cannot be stopped ---------- */
-  const bgVideo = document.querySelector(".holofeed__bg");
-  if (bgVideo) {
-    const keepPlaying = () => {
-      const p = bgVideo.play();
-      if (p && typeof p.catch === "function") p.catch(() => {});
-    };
-    bgVideo.addEventListener("pause", keepPlaying);
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) keepPlaying();
+  /* ---------- Background Lottie animation (always looping) ---------- */
+  const lottieHost = document.getElementById("holofeedLottie");
+  if (lottieHost && window.lottie) {
+    window.lottie.loadAnimation({
+      container: lottieHost,
+      renderer: "svg",
+      loop: true,
+      autoplay: true,
+      path: "assets/lottie/holofeed.json",
+      rendererSettings: { preserveAspectRatio: "xMidYMid slice" }
     });
-    keepPlaying();
   }
 
   /* ---------- Star Wars theme music (on by default) ---------- */
@@ -157,16 +156,35 @@
     if (gate) {
       document.body.style.overflow = "hidden";   // lock scroll behind the gate
       const enterBtn = document.getElementById("enterBtn");
-      const dismiss = () => {
+
+      // Land the visitor on the briefing section after entering
+      const goBriefing = () => {
         document.body.style.overflow = "";
-        gate.classList.add("is-leaving");
-        setTimeout(() => gate.remove(), 600);
+        const briefing = document.getElementById("briefing");
+        // "instant" so it lands immediately, ignoring the page's smooth-scroll
+        if (briefing) briefing.scrollIntoView({ behavior: "instant", block: "start" });
       };
+
       if (enterBtn) enterBtn.addEventListener("click", () => {
         start();                                  // music
         if (stopGateStars) stopGateStars();       // stop the gate's starfield
-        if (prefersReduced) { dismiss(); return; }
-        runHyperspace(3000, dismiss);             // 3s jump, then reveal the site
+
+        // Hide the "Welcome to my galaxy" content immediately so it can never
+        // reappear when the hyperspace effect fades out
+        const inner = gate.querySelector(".enter-gate__inner");
+        if (inner) inner.style.display = "none";
+
+        if (prefersReduced) {
+          gate.remove();
+          goBriefing();
+          return;
+        }
+        // Keep the (now empty) dark gate as a backdrop during the jump, then
+        // remove it and reveal the briefing section
+        runHyperspace(3000, () => {
+          goBriefing();
+          gate.remove();
+        });
       }, { once: true });
     } else {
       start();
